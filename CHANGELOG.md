@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-07-07
+
+### Added
+- Published to PyPI: `pip install claude-usage-exporter`.
+- CI workflow (ruff + pytest on Python 3.11-3.13) and a Trusted-Publishing release
+  workflow (OIDC, no stored tokens).
+- README: PyPI/CI badges and a note on how this relates to ccusage.
+
 ## [0.1.1] - 2026-07-07
 
 ### Fixed

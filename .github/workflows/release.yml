@@ -1,0 +1,34 @@
+name: Release to PyPI
+
+# Publishes on a version tag via PyPI Trusted Publishing (OIDC) -- no API tokens
+# stored anywhere. Configure the trusted publisher once at
+# https://pypi.org/manage/account/publishing/ (workflow: release.yml, environment: pypi).
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write   # required for OIDC trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

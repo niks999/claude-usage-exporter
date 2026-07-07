@@ -5,6 +5,8 @@ Export **Claude Code token usage** -- per agent, model, and token type -- to
 already writes. Works on **Max/Pro OAuth subscriptions**, where API-key telemetry
 isn't available.
 
+[![PyPI](https://img.shields.io/pypi/v/claude-usage-exporter.svg)](https://pypi.org/project/claude-usage-exporter/)
+[![CI](https://github.com/niks999/claude-usage-exporter/actions/workflows/ci.yml/badge.svg)](https://github.com/niks999/claude-usage-exporter/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)
 
@@ -212,6 +214,12 @@ Single metric: `claude_tokens_total` (configurable via `--metric`).
 | `token_type` | `input`, `output`, `cache_read`, `cache_creation`   |
 | `model`      | the model id from the transcript                    |
 | `agent`      | whatever your labeler assigns (absent if none)      |
+
+## Related
+
+- [ccusage](https://github.com/ryoppippi/ccusage) -- excellent CLI for Claude Code
+  usage summaries. Complementary: ccusage is for interactive CLI reporting; this tool
+  is for pushing continuous metrics to Prometheus/OTLP.
 
 ## License
 
