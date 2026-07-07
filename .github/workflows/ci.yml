@@ -16,7 +16,8 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - run: uv pip install --system -e ".[otlp,dev]"
-      - run: ruff check .
-      - run: ruff format --check .
-      - run: pytest -q
+      - run: uv venv
+      - run: uv pip install -e ".[otlp,dev]"
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest -q
