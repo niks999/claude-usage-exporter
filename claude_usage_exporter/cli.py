@@ -34,7 +34,14 @@ def build_sinks(args: argparse.Namespace) -> list:
             endpoint = args.otlp_endpoint or os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
             if not endpoint:
                 raise SystemExit("--sink otlp requires --otlp-endpoint (or $OTEL_EXPORTER_OTLP_ENDPOINT)")
-            built.append(sinks.OtlpSink(endpoint=endpoint, auth=args.otlp_auth, service=args.service))
+            built.append(
+                sinks.OtlpSink(
+                    endpoint=endpoint,
+                    auth=args.otlp_auth,
+                    service=args.service,
+                    instance_id=args.service_instance_id,
+                )
+            )
         else:  # pragma: no cover - argparse choices guard this
             raise SystemExit(f"unknown sink: {name}")
     return built
@@ -74,6 +81,12 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--otlp-endpoint", default="", help="OTLP/HTTP base URL for the otlp sink")
     ap.add_argument("--otlp-auth", default=None, help="Authorization header value for the otlp sink (or $OTLP_AUTH)")
     ap.add_argument("--service", default="claude-usage-exporter", help="OTLP service.name resource attribute")
+    ap.add_argument(
+        "--service-instance-id",
+        default=None,
+        help="OTLP service.instance.id (or $OTLP_SERVICE_INSTANCE_ID); defaults to hostname. "
+        "Pinning this avoids per-process series churn from the SDK's random default.",
+    )
     ap.add_argument("--dry-run", action="store_true", help="parse + print to stdout; do not persist state or push")
     ap.add_argument("--reset-state", action="store_true", help="ignore prior state (re-read all history)")
     return ap.parse_args(argv)

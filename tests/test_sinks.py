@@ -72,6 +72,24 @@ def test_prometheus_output_passes_promtool(tmp_path):
     assert proc.returncode == 0, proc.stderr.decode()
 
 
+def test_otlp_instance_id_is_stable_by_default():
+    # Same identity across calls (default = hostname) -> no per-process series churn.
+    a = sinks.otlp_resource_attributes("svc")
+    b = sinks.otlp_resource_attributes("svc")
+    assert a["service.instance.id"] == b["service.instance.id"]
+    assert a["service.name"] == "svc"
+
+
+def test_otlp_instance_id_overrides():
+    explicit = sinks.otlp_resource_attributes("svc", instance_id="host-42")
+    assert explicit["service.instance.id"] == "host-42"
+
+
+def test_otlp_instance_id_from_env(monkeypatch):
+    monkeypatch.setenv("OTLP_SERVICE_INSTANCE_ID", "from-env")
+    assert sinks.otlp_resource_attributes("svc")["service.instance.id"] == "from-env"
+
+
 def test_otlp_observations_mapping():
     pytest.importorskip("opentelemetry")
     obs = sinks.build_observations(SAMPLES)

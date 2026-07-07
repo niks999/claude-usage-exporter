@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import sys
 from pathlib import Path
 from typing import Iterable
@@ -89,6 +90,19 @@ def build_observations(samples: Iterable[Sample]):
     return [Observation(value, dict(labels)) for labels, value in samples]
 
 
+def otlp_resource_attributes(service: str, instance_id: str | None = None) -> dict:
+    """Resource attributes for the OTLP export.
+
+    ``service.instance.id`` is pinned to a STABLE value (default: hostname) rather
+    than left to the SDK, which since opentelemetry-sdk 1.x auto-generates a random
+    UUID per process. For a cron-style oneshot exporter that random id would mint a
+    brand-new series set on every run -- cardinality churn that inflates ``sum`` and
+    breaks ``increase``. A stable id keeps one series per (host, labels).
+    """
+    inst = instance_id or os.environ.get("OTLP_SERVICE_INSTANCE_ID") or socket.gethostname()
+    return {"service.name": service, "service.instance.id": inst}
+
+
 class OtlpSink:
     """Push cumulative totals as an OTLP ObservableCounter (CUMULATIVE temporality).
 
@@ -104,11 +118,13 @@ class OtlpSink:
         endpoint: str,
         auth: str | None = None,
         service: str = "claude-usage-exporter",
+        instance_id: str | None = None,
         timeout_millis: int = 30_000,
     ) -> None:
         self.endpoint = endpoint
         self.auth = auth if auth is not None else os.environ.get("OTLP_AUTH")
         self.service = service
+        self.instance_id = instance_id
         self.timeout_millis = timeout_millis
 
     def emit(self, metric_name: str, samples: Iterable[Sample]) -> None:
@@ -125,7 +141,8 @@ class OtlpSink:
         exporter = OTLPMetricExporter(endpoint=self.endpoint.rstrip("/") + "/v1/metrics", headers=headers)
         # A huge interval means we never auto-export; we drive it with force_flush.
         reader = PeriodicExportingMetricReader(exporter, export_interval_millis=2**31 - 1)
-        provider = MeterProvider(resource=Resource.create({"service.name": self.service}), metric_readers=[reader])
+        resource = Resource.create(otlp_resource_attributes(self.service, self.instance_id))
+        provider = MeterProvider(resource=resource, metric_readers=[reader])
         meter = provider.get_meter("claude-usage-exporter")
 
         def callback(_options):

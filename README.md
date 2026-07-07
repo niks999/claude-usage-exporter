@@ -102,6 +102,17 @@ claude-usage-exporter --sink otlp \
   --otlp-endpoint https://otlp-gateway.example.net/otlp
 ```
 
+Two OTLP gotchas worth knowing:
+
+- **Stable instance id.** `service.instance.id` is pinned to the hostname by default
+  (override with `--service-instance-id` / `$OTLP_SERVICE_INSTANCE_ID`). Left to the
+  SDK it would be a random UUID *per process*, so a cron-style run would create a new
+  series set every invocation. Keep it stable.
+- **`_total` suffix normalization.** OTLP-to-Prometheus backends (e.g. Grafana Cloud)
+  move a counter's `_total` suffix to the *end* of the name. `claude_tokens_total`
+  passes through unchanged; a name like `my_total_metric` would arrive as
+  `my_metric_total`. Name your metric so `_total` is already terminal.
+
 ## Per-agent labeling (and "multi-framework" support)
 
 By default there's no agent label -- usage is keyed by `model` + `token_type`. To
