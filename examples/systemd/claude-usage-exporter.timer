@@ -1,0 +1,11 @@
+[Unit]
+Description=Run claude-usage-exporter every 10 minutes
+
+[Timer]
+# Every 10 min at an off-minute so it does not pile onto other scheduled work.
+OnCalendar=*:3,13,23,33,43,53
+Persistent=true
+Unit=claude-usage-exporter.service
+
+[Install]
+WantedBy=timers.target

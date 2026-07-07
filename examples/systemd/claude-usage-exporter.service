@@ -1,0 +1,25 @@
+[Unit]
+Description=Export Claude Code token usage (per agent/model) to a metrics backend
+# Optional: fire your own alerting unit if a run fails (e.g. OTLP 401/timeout).
+# Cumulative emit self-heals on the next run, so this just surfaces breakage.
+# OnFailure=my-alert@%n.service
+
+[Service]
+Type=oneshot
+# Secrets (e.g. OTLP_AUTH="Basic <token>") via EnvironmentFile, NOT `source`, so a
+# value containing a space is preserved intact. Adjust the path to your setup.
+EnvironmentFile=-%h/.config/claude-usage-exporter/env
+# Pick ONE sink block below.
+#
+# OTLP:
+ExecStart=claude-usage-exporter \
+  --labeler-config %h/.config/claude-usage-exporter/labeler.toml \
+  --sink otlp --otlp-endpoint https://otlp-gateway.example.net/otlp
+#
+# Prometheus textfile collector (point node_exporter at the same directory):
+# ExecStart=claude-usage-exporter \
+#   --labeler-config %h/.config/claude-usage-exporter/labeler.toml \
+#   --sink prometheus --prometheus-textfile /var/lib/node_exporter/textfile/claude.prom
+
+[Install]
+WantedBy=default.target

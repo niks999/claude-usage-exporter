@@ -1,0 +1,31 @@
+# OpenClaw agent labeling for claude-usage-exporter.
+#
+# Claude Code encodes the launch CWD as its project-dir name ("/" -> "-").
+# OpenClaw launches each agent's `claude -p` with cwd = that agent's workspace,
+# so the project-dir suffix identifies the agent. First matching rule wins;
+# anything unmatched is labelled `default`.
+#
+# This file is the whole "multi-framework" story: to support Hermes (or any other
+# orchestrator), you don't touch code -- you add rules describing how ITS launch
+# dirs map to agents. Example Hermes rule shown (commented) at the bottom.
+
+label = "agent"
+default = "unknown"
+match_on = "parent"   # match against the transcript's parent dir name
+
+[[rules]]
+pattern = "-agents-chief-of-staff$"
+value = "chief-of-staff"
+
+[[rules]]
+pattern = "-agents-engineer$"
+value = "engineer"
+
+[[rules]]
+pattern = "-repos-agent-os$"
+value = "agent-os-shared"
+
+# --- Hermes example (uncomment + adapt to your launch layout) ---------------
+# [[rules]]
+# pattern = "-hermes-workers-researcher$"
+# value = "researcher"
